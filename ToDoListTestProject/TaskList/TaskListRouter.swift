@@ -6,3 +6,15 @@
 //
 
 import Foundation
+
+protocol TaskListRouterProtocol: AnyObject {
+    
+}
+
+class TaskListRouter: TaskListRouterProtocol {
+    weak var viewController: TaskListViewController!
+    
+    init(viewController: TaskListViewController) {
+        self.viewController = viewController
+    }
+}

@@ -6,3 +6,19 @@
 //
 
 import Foundation
+
+protocol TaskDetailsConfiguratorProtocol: AnyObject {
+    func configure(viewController: TaskDetailsViewController)
+}
+
+class TaskDetailsConfigurator: TaskDetailsConfiguratorProtocol {
+    func configure(viewController: TaskDetailsViewController) {
+        let presenter = TaskDetailsPresenter(viewController: viewController)
+        let interactor = TaskDetailsInteractor(presenter: presenter)
+        let router = TaskDetailsRouter(viewController: viewController)
+        
+        viewController.presenter = presenter
+        presenter.interactor = interactor
+        presenter.router = router
+    }
+}

@@ -6,3 +6,16 @@
 //
 
 import Foundation
+
+protocol TaskDetailsRouterProtocol: AnyObject {
+    
+}
+
+
+class TaskDetailsRouter: TaskDetailsRouterProtocol {
+    weak var viewController: TaskDetailsViewController!
+    
+    init(viewController: TaskDetailsViewController) {
+        self.viewController = viewController
+    }
+}
