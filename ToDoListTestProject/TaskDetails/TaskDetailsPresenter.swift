@@ -8,7 +8,7 @@
 import Foundation
 
 protocol TaskDetailsPresenterProtocol: AnyObject {
-    
+    func showTask()
 }
 
 class TaskDetailsPresenter {
@@ -24,9 +24,21 @@ class TaskDetailsPresenter {
 
 
 extension TaskDetailsPresenter: TaskDetailsPresenterProtocol {
-    
+    func showTask() {
+        interactor.fetchTask()
+
+    }
 }
 
 extension TaskDetailsPresenter: TaskDetailsInteractorOutputPritocol {
-    
+    func recieveTask(_ task: ToDos) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd/MM/yyyy"
+        let title = task.todo
+        let description = task.description ?? ""
+        let date = task.date ?? dateFormatter.string(from: Date())
+        
+        let task = TaskDetailsEntity(title: title, description: description, date: date)
+        viewController.displayTaskDetails(task: task)
+    }
 }

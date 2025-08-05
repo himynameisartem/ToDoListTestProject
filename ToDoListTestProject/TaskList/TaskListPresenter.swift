@@ -16,6 +16,7 @@ protocol TaskListPresenterProtocol: AnyObject {
     func removeTask(_ taks: ToDos)
     func searchTasks(by text: String)
     func cancelSearch()
+    func routeToTaskDetails(task: ToDos?)
 }
 
 class TaskListPresenter {
@@ -68,6 +69,10 @@ extension TaskListPresenter: TaskListPresenterProtocol {
         isSearchActive = false
         self.displayedTasks = allTasks
         interactor.cancelSearch()
+    }
+    
+    func routeToTaskDetails(task: ToDos?) {
+        router.navigateToTaskDetailsForEdit(task: task)
     }
 }
 

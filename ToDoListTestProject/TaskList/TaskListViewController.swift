@@ -53,11 +53,16 @@ class TaskListViewController: UIViewController {
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         
+        let backItem = UIBarButtonItem()
+        backItem.title = "Back"
+        navigationItem.backBarButtonItem = backItem
+        
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = "Tasks"
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .yellow
     }
     
     private func configureSearchController() {
@@ -137,7 +142,7 @@ class TaskListViewController: UIViewController {
     }
     
     @objc private func addButtonTapped(_ sender: UIButton) {
-        print("Add button tapped")
+        presenter.routeToTaskDetails(task: nil)
     }
 }
 
@@ -171,7 +176,7 @@ extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
         
         let configuration = UIContextMenuConfiguration(identifier: indexPath as NSCopying, previewProvider: nil) { action in
             let addTask = UIAction(title: "Edit", image: UIImage(systemName: "square.and.pencil")) { action in
-                
+                self.presenter.routeToTaskDetails(task: task)
             }
             let editTask = UIAction(title: "Share", image: UIImage(systemName: "square.and.arrow.up")) { action in
                 
