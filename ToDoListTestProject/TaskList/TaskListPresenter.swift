@@ -10,9 +10,11 @@ import Foundation
 protocol TaskListPresenterProtocol: AnyObject {
     var tasks: [ToDos] { get }
     var taskCount: Int? { get }
-    func task(atIndex indexPath: IndexPath) -> ToDos?
-    func taskCompletionToggle(at index: Int)
     func viewDidLoad()
+    func task(atIndex indexPath: IndexPath) -> ToDos?
+    func taskCompletionToggle(at task: ToDos)
+    func searchTasks(by text: String)
+    func cancelSearch()
 }
 
 class TaskListPresenter {
@@ -21,7 +23,14 @@ class TaskListPresenter {
     var interactor: TaskListInteractorProtocol!
     var router: TaskListRouterProtocol!
     
-    var tasks: [ToDos] = []
+    private var displayedTasks: [ToDos] = []
+    private var allTasks: [ToDos] = []
+    private var isSearchActive = false
+    
+    var tasks: [ToDos] {
+        return displayedTasks
+    }
+    
     var taskCount: Int? {
         return tasks.count
     }
@@ -33,8 +42,8 @@ class TaskListPresenter {
 
 extension TaskListPresenter: TaskListPresenterProtocol {
     
-    func taskCompletionToggle(at index: Int) {
-        interactor.completeTask(at: index)
+    func taskCompletionToggle(at task: ToDos) {
+        interactor.completeTask(at: task)
     }
     
     func viewDidLoad() {
@@ -42,22 +51,44 @@ extension TaskListPresenter: TaskListPresenterProtocol {
     }
     
     func task(atIndex indexPath: IndexPath) -> ToDos? {
-        if tasks.indices.contains(indexPath.row) {
-            return tasks[indexPath.row]
-        } else {
-            return nil
-        }
+        return tasks.indices.contains(indexPath.row) ? tasks[indexPath.row] : nil
+    }
+    
+    func searchTasks(by text: String) {
+        isSearchActive = !text.isEmpty
+        interactor.searchTasks(with: text)
+    }
+    
+    func cancelSearch() {
+        isSearchActive = false
+        self.displayedTasks = allTasks
+        interactor.cancelSearch()
     }
 }
 
 extension TaskListPresenter: TaskListInteractorOutputProtocol {
     func didUpdateTasks(_ tasks: [ToDos]) {
-        self.tasks = tasks
+        self.allTasks = tasks
+        if isSearchActive {
+            for i in 0..<displayedTasks.count {
+                if let updatedTask = allTasks.first(where: { $0 == displayedTasks[i] }) {
+                    displayedTasks[i] = updatedTask
+                }
+            }
+        } else {
+            self.displayedTasks = tasks
+        }
         view.reloadData()
     }
     
     func didFetchTask(_ tasks: [ToDos]) {
-        self.tasks = tasks
+        self.allTasks = tasks
+        self.displayedTasks = tasks
+        view.reloadData()
+    }
+    
+    func didSearchTasks(_ tasks: [ToDos]) {
+        self.displayedTasks = tasks
         view.reloadData()
     }
 }

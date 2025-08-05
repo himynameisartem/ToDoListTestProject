@@ -21,3 +21,13 @@ struct ToDos: Codable {
     var description: String?
     var date: String?
 }
+
+extension ToDos: Equatable {
+    static func == (lhs: ToDos, rhs: ToDos) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.todo == rhs.todo &&
+               lhs.userId == rhs.userId &&
+               lhs.description == rhs.description &&
+               lhs.date == rhs.date
+    }
+}

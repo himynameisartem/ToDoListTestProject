@@ -19,7 +19,6 @@ class TaskListTableViewCell: UITableViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 17, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .white
         return label
     }()
     
@@ -28,7 +27,6 @@ class TaskListTableViewCell: UITableViewCell {
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.numberOfLines = 2
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .white
         return label
     }()
     
@@ -90,9 +88,28 @@ class TaskListTableViewCell: UITableViewCell {
         let image = UIImage(systemName: symbolName, withConfiguration: config)
         checkmarkButton.setImage(image, for: .normal)
         checkmarkButton.tintColor = symbolColor
-        titleLabel.text = task.todo
+        titleLabel.attributedText = underlineString(isComleted: task.completed, text: task.todo)
         descriptionLabel.text = task.description ?? ""
         dateLabel.text = task.date ?? ""
+        
+        if task.completed {
+            titleLabel.textColor = .systemGray
+            descriptionLabel.textColor = .darkGray
+        } else {
+            titleLabel.textColor = .white
+            descriptionLabel.textColor = .white
+        }
+    }
+    
+    private func underlineString(isComleted: Bool, text: String?) -> NSAttributedString {
+        if isComleted {
+            return NSAttributedString(string: text ?? "", attributes: [
+                .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+                .strikethroughColor: UIColor.systemGray
+            ])
+        } else {
+            return NSMutableAttributedString(string: text ?? "")
+        }
     }
     
     @objc func checkmarkTapped(_ sender: UIButton) {

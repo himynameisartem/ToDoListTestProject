@@ -35,7 +35,7 @@ class TaskListViewController: UIViewController {
     }
     
     private func setuUI() {
-
+        
         view.backgroundColor = .darkGray
         view.addSubview(bottomBarView)
         bottomBarView.addSubview(tasksCountLabel)
@@ -67,7 +67,7 @@ class TaskListViewController: UIViewController {
                 .foregroundColor: UIColor.lightGray,
             ]
         )
-
+        
         searchController.searchBar.searchTextField.leftView?.tintColor = .lightGray
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.searchBarStyle = .minimal
@@ -75,6 +75,7 @@ class TaskListViewController: UIViewController {
         searchController.searchBar.tintColor = .lightGray
         searchController.searchBar.searchTextField.backgroundColor = .darkGray
         searchController.searchBar.searchTextField.textColor = .lightGray
+        searchController.searchBar.delegate = self
     }
     
     private func configureBottomBarView() {
@@ -134,6 +135,8 @@ class TaskListViewController: UIViewController {
     }
 }
 
+//MARK: - UITableViewDelegate, UITableViewDataSource
+
 extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -142,20 +145,74 @@ extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskListTableViewCell", for: indexPath) as! TaskListTableViewCell
-
+        
         guard let task = presenter.task(atIndex: indexPath) else { return cell}
         cell.configure(task: task)
         cell.checkmarkButtonAction = { [weak self] in
-            self?.presenter.taskCompletionToggle(at: indexPath.row)
+            self?.presenter.taskCompletionToggle(at: task)
         }
-        
+
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         106
     }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+       
+        if let cell = tableView.cellForRow(at: indexPath) {
+            cell.contentView.backgroundColor = .darkGray
+        }
+        
+        let configuration = UIContextMenuConfiguration(identifier: indexPath as NSCopying, previewProvider: nil) { action in
+            let addTask = UIAction(title: "Edit", image: UIImage(systemName: "square.and.pencil")) { action in
+                
+            }
+            let editTask = UIAction(title: "Share", image: UIImage(systemName: "square.and.arrow.up")) { action in
+                
+            }
+            let deleteTask = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { action in
+               
+            }
+            return UIMenu(title: "", children: [addTask, editTask, deleteTask])
+        }
+        return configuration
+    }
+    
+    func tableView(_ tableView: UITableView, willEndContextMenuInteraction configuration: UIContextMenuConfiguration,
+                   animator: UIContextMenuInteractionAnimating?) {
+        guard let indexPath = configuration.identifier as? IndexPath else { return }
+        animator?.addCompletion {
+            if let cell = tableView.cellForRow(at: indexPath) {
+                UIView.animate(withDuration: 0.3) {
+                    cell.contentView.backgroundColor = .clear
+                }
+            }
+        }
+    }
 }
+
+//MARK: - UISearchBarDelegate
+
+extension TaskListViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if !searchText.isEmpty {
+            presenter.searchTasks(by: searchText)
+        } else {
+            presenter.cancelSearch()
+            searchBar.resignFirstResponder()
+        }
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        presenter.cancelSearch() 
+        searchBar.resignFirstResponder()
+    }
+}
+
+//MARK: - TaskListViewProtocol
 
 extension TaskListViewController: TaskListViewProtocol {
     func reloadData() {

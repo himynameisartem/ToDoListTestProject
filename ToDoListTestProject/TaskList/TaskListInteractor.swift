@@ -12,13 +12,16 @@ protocol TaskListInteractorProtocol: AnyObject {
     func fetchTasks()
     func addTask(_ task: ToDos)
     func editTask(at index: Int, with newTask: ToDos)
-    func completeTask(at index: Int)
+    func completeTask(at task: ToDos)
     func removeTask(at index: Int)
+    func searchTasks(with query: String)
+    func cancelSearch()
 }
 
 protocol TaskListInteractorOutputProtocol: AnyObject {
     func didFetchTask(_ tasks: [ToDos])
     func didUpdateTasks(_ tasks: [ToDos])
+    func didSearchTasks(_ tasks: [ToDos])
 }
 
 class TaskListInteractor {
@@ -41,9 +44,9 @@ extension TaskListInteractor: TaskListInteractorProtocol {
         taskManager.editTask(at: index, with: newTask)
     }
     
-    func completeTask(at index: Int) {
-        taskManager.completeTask(at: index)
-        presenter.didUpdateTasks(tasks)
+    func completeTask(at task: ToDos) {
+        taskManager.completeTask(at: task)
+        presenter.didUpdateTasks(taskManager.tasks)
     }
     
     func removeTask(at index: Int) {
@@ -58,5 +61,14 @@ extension TaskListInteractor: TaskListInteractorProtocol {
         taskManager.loadTasksFromJSON { [weak self] tasks in
             self?.presenter.didFetchTask(tasks)
         }
+    }
+    
+    func searchTasks(with query: String){
+        let filteredTasks = taskManager.searchTasks(with: query)
+        presenter.didSearchTasks(filteredTasks)
+    }
+    
+    func cancelSearch() {
+        presenter.didUpdateTasks(taskManager.tasks)
     }
 }
