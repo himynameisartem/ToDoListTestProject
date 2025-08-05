@@ -26,9 +26,10 @@ class TaskManager {
         }
     }
     
-    func removeTask(at index: Int) {
-        guard index >= 0 && index < tasks.count else { return }
-        tasks.remove(at: index)
+    func removeTask(_ task: ToDos) {
+        if let index = tasks.firstIndex(where: { $0 == task}) {
+            tasks.remove(at: index)
+        }
     }
     
     func loadTasksFromJSON(completion: @escaping ([ToDos]) -> Void) {

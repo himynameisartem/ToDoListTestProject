@@ -13,7 +13,7 @@ protocol TaskListInteractorProtocol: AnyObject {
     func addTask(_ task: ToDos)
     func editTask(at index: Int, with newTask: ToDos)
     func completeTask(at task: ToDos)
-    func removeTask(at index: Int)
+    func removeTask(_ task: ToDos)
     func searchTasks(with query: String)
     func cancelSearch()
 }
@@ -49,8 +49,9 @@ extension TaskListInteractor: TaskListInteractorProtocol {
         presenter.didUpdateTasks(taskManager.tasks)
     }
     
-    func removeTask(at index: Int) {
-        taskManager.removeTask(at: index)
+    func removeTask(_ task: ToDos) {
+        taskManager.removeTask(task)
+        presenter.didUpdateTasks(taskManager.tasks)
     }
     
     var tasks: [ToDos] {

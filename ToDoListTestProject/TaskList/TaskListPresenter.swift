@@ -13,6 +13,7 @@ protocol TaskListPresenterProtocol: AnyObject {
     func viewDidLoad()
     func task(atIndex indexPath: IndexPath) -> ToDos?
     func taskCompletionToggle(at task: ToDos)
+    func removeTask(_ taks: ToDos)
     func searchTasks(by text: String)
     func cancelSearch()
 }
@@ -52,6 +53,10 @@ extension TaskListPresenter: TaskListPresenterProtocol {
     
     func task(atIndex indexPath: IndexPath) -> ToDos? {
         return tasks.indices.contains(indexPath.row) ? tasks[indexPath.row] : nil
+    }
+    
+    func removeTask(_ taks: ToDos) {
+        interactor.removeTask(taks)
     }
     
     func searchTasks(by text: String) {

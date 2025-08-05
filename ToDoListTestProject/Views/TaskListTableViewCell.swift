@@ -9,6 +9,14 @@ import UIKit
 
 class TaskListTableViewCell: UITableViewCell {
     
+    let containerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = 8
+        return view
+    }()
+    
     let checkmarkButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -40,7 +48,6 @@ class TaskListTableViewCell: UITableViewCell {
     
     var checkmarkButtonAction: (() -> Void)?
     
-    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -51,14 +58,17 @@ class TaskListTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+
+    
     func setupUI() {
-        backgroundColor = .clear
+        backgroundColor = .black
         selectionStyle = .none
         
+        contentView.addSubview(containerView)
+        containerView.addSubview(titleLabel)
+        containerView.addSubview(descriptionLabel)
+        containerView.addSubview(dateLabel)
         contentView.addSubview(checkmarkButton)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(descriptionLabel)
-        contentView.addSubview(dateLabel)
         
         checkmarkButton.addTarget(self, action: #selector(checkmarkTapped), for: .touchUpInside)
     }
@@ -69,6 +79,10 @@ class TaskListTableViewCell: UITableViewCell {
             checkmarkButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
             checkmarkButton.heightAnchor.constraint(equalToConstant: 24),
             checkmarkButton.widthAnchor.constraint(equalToConstant: 24),
+            containerView.leadingAnchor.constraint(equalTo: checkmarkButton.trailingAnchor, constant: 7),
+            containerView.topAnchor.constraint(equalTo: topAnchor, constant: 5),
+            containerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
+            containerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: checkmarkButton.trailingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
@@ -80,6 +94,8 @@ class TaskListTableViewCell: UITableViewCell {
             dateLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12)
         ])
     }
+    
+    
     
     func configure(task: ToDos) {
         let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)

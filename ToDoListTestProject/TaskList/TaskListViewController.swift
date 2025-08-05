@@ -61,21 +61,27 @@ class TaskListViewController: UIViewController {
     }
     
     private func configureSearchController() {
+
         searchController.searchBar.searchTextField.attributedPlaceholder = NSAttributedString(
             string: "Search tasks...",
             attributes: [
                 .foregroundColor: UIColor.lightGray,
             ]
         )
-        
         searchController.searchBar.searchTextField.leftView?.tintColor = .lightGray
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.searchBarStyle = .minimal
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.searchBar.tintColor = .lightGray
         searchController.searchBar.searchTextField.backgroundColor = .darkGray
-        searchController.searchBar.searchTextField.textColor = .lightGray
         searchController.searchBar.delegate = self
+        
+        DispatchQueue.main.async {
+            if let textField = self.searchController.searchBar.value(forKey: "searchField") as? UITextField {
+                textField.textColor = .white
+                textField.tintColor = .white
+            }
+        }
     }
     
     private func configureBottomBarView() {
@@ -160,10 +166,8 @@ extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-       
-        if let cell = tableView.cellForRow(at: indexPath) {
-            cell.contentView.backgroundColor = .darkGray
-        }
+        
+        guard let task = presenter.task(atIndex: indexPath) else { return nil }
         
         let configuration = UIContextMenuConfiguration(identifier: indexPath as NSCopying, previewProvider: nil) { action in
             let addTask = UIAction(title: "Edit", image: UIImage(systemName: "square.and.pencil")) { action in
@@ -173,23 +177,19 @@ extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
                 
             }
             let deleteTask = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { action in
-               
+                self.presenter.removeTask(task)
             }
             return UIMenu(title: "", children: [addTask, editTask, deleteTask])
         }
         return configuration
     }
     
-    func tableView(_ tableView: UITableView, willEndContextMenuInteraction configuration: UIContextMenuConfiguration,
-                   animator: UIContextMenuInteractionAnimating?) {
-        guard let indexPath = configuration.identifier as? IndexPath else { return }
-        animator?.addCompletion {
-            if let cell = tableView.cellForRow(at: indexPath) {
-                UIView.animate(withDuration: 0.3) {
-                    cell.contentView.backgroundColor = .clear
-                }
-            }
-        }
+    func tableView(_ tableView: UITableView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let indexPath = configuration.identifier as? IndexPath else { return  nil }
+        guard let cell = tableView.cellForRow(at: indexPath) as? TaskListTableViewCell else { return nil }
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .darkGray
+        return UITargetedPreview(view: cell.containerView, parameters: parameters)
     }
 }
 
@@ -210,6 +210,7 @@ extension TaskListViewController: UISearchBarDelegate {
         presenter.cancelSearch() 
         searchBar.resignFirstResponder()
     }
+
 }
 
 //MARK: - TaskListViewProtocol
@@ -217,8 +218,6 @@ extension TaskListViewController: UISearchBarDelegate {
 extension TaskListViewController: TaskListViewProtocol {
     func reloadData() {
         tasksCountLabel.text = ("\(presenter.taskCount ?? 0) tasks")
-        DispatchQueue.main.async {
-            self.taskListTableView.reloadData()
-        }
+        self.taskListTableView.reloadData()
     }
 }
