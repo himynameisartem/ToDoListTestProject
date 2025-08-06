@@ -30,6 +30,7 @@ class TaskListPresenter {
     private var displayedTasks: [Task] = []
     private var allTasks: [Task] = []
     private var isSearchActive = false
+    private var searchText: String = ""
     
     var tasks: [Task] {
         return displayedTasks
@@ -72,11 +73,13 @@ extension TaskListPresenter: TaskListPresenterProtocol {
     
     func searchTasks(by text: String) {
         isSearchActive = !text.isEmpty
+        searchText = text
         interactor.searchTasks(with: text)
     }
     
     func cancelSearch() {
         isSearchActive = false
+        searchText = ""
         self.displayedTasks = allTasks
         interactor.cancelSearch()
     }
@@ -87,13 +90,13 @@ extension TaskListPresenter: TaskListPresenterProtocol {
 }
 
 extension TaskListPresenter: TaskListInteractorOutputProtocol {
+    
     func didUpdateTasks(_ tasks: [Task]) {
         self.allTasks = tasks
         if isSearchActive {
-            for i in 0..<displayedTasks.count {
-                if let updatedTask = allTasks.first(where: { $0 == displayedTasks[i] }) {
-                    displayedTasks[i] = updatedTask
-                }
+            self.displayedTasks = allTasks.filter {
+                guard let title = $0.title else { return false }
+                return title.lowercased().contains(searchText.lowercased())
             }
         } else {
             self.displayedTasks = tasks

@@ -244,7 +244,7 @@ extension TaskListViewController: UISearchBarDelegate {
 extension TaskListViewController: TaskListViewProtocol {
     func reloadData() {
         tasksCountLabel.text = ("\(presenter.taskCount ?? 0) tasks")
-        self.taskListTableView.reloadData()
+            self.taskListTableView.reloadData()
     }
     
     func displayShareTask(_ taskDescription: String) {

@@ -17,7 +17,6 @@ protocol TaskDetailsInteractorOutputPritocol: AnyObject {
     func didUpdateTask()
 }
 
-
 class TaskDetailsInteractor {
     
     weak var presenter: TaskDetailsInteractorOutputPritocol!
@@ -31,21 +30,30 @@ class TaskDetailsInteractor {
     }
 }
 
-
 extension TaskDetailsInteractor: TaskDetailsInteractorProtocol {
+    
     func fetchTask() {
         guard let task = task else { return }
         presenter.recieveTask(task)
     }
     
     func updateTask(_ task: TaskDetailsEntity) {
+
+        
         let newTask = task
+        
         if self.task == nil {
-            taskManager.addTask(title: newTask.title, detail: newTask.description, date: newTask.date)
+            taskManager.addTask(title: newTask.title, detail: newTask.description, date: newTask.date) { [weak self] in
+                self?.presenter.didUpdateTask()
+            }
         } else {
-            guard let task = self.task else { return }
-            taskManager.updateTask(task, title: newTask.title, detail: newTask.description, date: newTask.date, isCompleted: false)
+            guard let existingTask = self.task else {
+                return
+            }
+            
+            taskManager.updateTask(existingTask, title: newTask.title, detail: newTask.description, date: newTask.date, isCompleted: existingTask.isCompleted) { [weak self] in
+                self?.presenter.didUpdateTask()
+            }
         }
-        presenter.didUpdateTask()
     }
 }

@@ -23,22 +23,24 @@ class TaskDetailsPresenter {
     }
 }
 
-
 extension TaskDetailsPresenter: TaskDetailsPresenterProtocol {
     
     func showTask() {
         interactor.fetchTask()
-
     }
     
     func didEndEditing(title: String?, date: String, description: String?) {
-        guard let title = title else { return }
+        guard let title = title, !title.isEmpty else {
+            return
+        }
+        
         let task = TaskDetailsEntity(title: title, description: description ?? "", date: date)
         interactor.updateTask(task)
     }
 }
 
 extension TaskDetailsPresenter: TaskDetailsInteractorOutputPritocol {
+    
     func didUpdateTask() {
         viewController.didUpdateTask()
     }
@@ -50,7 +52,8 @@ extension TaskDetailsPresenter: TaskDetailsInteractorOutputPritocol {
         let description = task.details ?? ""
         let date = task.date ?? dateFormatter.string(from: Date())
         
-        let task = TaskDetailsEntity(title: title, description: description, date: date)
-        viewController.displayTaskDetails(task: task)
+        let taskEntity = TaskDetailsEntity(title: title, description: description, date: date)
+        
+        viewController.displayTaskDetails(task: taskEntity)
     }
 }

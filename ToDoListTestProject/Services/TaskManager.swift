@@ -15,104 +15,170 @@ class TaskManager {
     
     private(set) var tasks: [Task] = []
     
-    func fetchTasks()  {
-        let request: NSFetchRequest<Task> = Task.fetchRequest()
-        do {
-            tasks = try context.fetch(request)
-        } catch {
-            print(error.localizedDescription)
-            return tasks = []
+    
+    
+    func fetchTasks(completion: @escaping () -> Void) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            let request: NSFetchRequest<Task> = Task.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            
+            do {
+                self.tasks = try self.context.fetch(request)
+            } catch {
+                print(error.localizedDescription)
+                self.tasks = []
+            }
+            DispatchQueue.main.async {
+                completion()
+            }
         }
     }
     
-    func addTask(title: String, detail: String, date: String) {
-        let task = Task(context: context)
-        task.title = title
-        task.details = detail
-        task.date = date
-        task.isCompleted = false
-        CoreDataStack.shared.saveContext()
-        fetchTasks()
+    func addTask(title: String, detail: String, date: String, completion: @escaping () -> Void) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            let task = Task(context: self.context)
+            task.title = title
+            task.details = detail
+            task.date = date
+            task.isCompleted = false
+            task.createdAt = Date()
+            
+            CoreDataStack.shared.saveContext()
+            
+            let request: NSFetchRequest<Task> = Task.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            
+            do {
+                self.tasks = try self.context.fetch(request)
+            } catch {
+                print(error.localizedDescription)
+            }
+            
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
     }
     
-    func updateTask(_ task: Task, title: String, detail: String, date: String, isCompleted: Bool) {
-        task.title = title
-        task.details = detail
-        task.date = date
-        task.isCompleted = isCompleted
-        CoreDataStack.shared.saveContext()
-        fetchTasks()
+    func updateTask(_ task: Task, title: String, detail: String, date: String, isCompleted: Bool, completion: @escaping () -> Void) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            task.title = title
+            task.details = detail
+            task.date = date
+            task.isCompleted = isCompleted
+            
+            CoreDataStack.shared.saveContext()
+            
+            let request: NSFetchRequest<Task> = Task.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            
+            do {
+                self.tasks = try self.context.fetch(request)
+            } catch {
+                print(error.localizedDescription)
+            }
+            
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
     }
     
-    func completeToggle(_ task: Task) {
-        task.isCompleted.toggle()
-        CoreDataStack.shared.saveContext()
-        fetchTasks()
+    func completeToggle(_ task: Task, completion: @escaping () -> Void) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            task.isCompleted.toggle()
+            CoreDataStack.shared.saveContext()
+            
+            let request: NSFetchRequest<Task> = Task.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            
+            do {
+                self.tasks = try self.context.fetch(request)
+            } catch {
+                print(error.localizedDescription)
+            }
+            
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
     }
     
-    func searchTasks(by text: String) -> [Task] {
-        let fetchRequest: NSFetchRequest<Task> = Task.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "title CONTAINS[cd] %@ OR detail CONTAINS[cd] %@", text, text)
+        func deleteTask(_ task: Task) {
+            context.delete(task)
+            CoreDataStack.shared.saveContext()
+            let request: NSFetchRequest<Task> = Task.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            
+            do {
+                self.tasks = try self.context.fetch(request)
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    
+    func searchTasks(by text: String, completion: @escaping ([Task]) -> Void) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            let fetchRequest: NSFetchRequest<Task> = Task.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "title CONTAINS[cd]%@", text)
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            
+            do {
+                let result = try self.context.fetch(fetchRequest)
+                DispatchQueue.main.async {
+                    completion(result)
+                }
+            } catch {
+                print(error.localizedDescription)
+                DispatchQueue.main.async {
+                    completion([])
+                }
+            }
+        }
+    }
+    
+    func performInitialLoadIfNeeded(completion: @escaping () -> Void) {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: "hasLaunchedBefore") else {
+            DispatchQueue.main.async {
+                completion()
+            }
+            return
+        }
         
-        do {
-            return try context.fetch(fetchRequest)
-        } catch {
-            print(error.localizedDescription)
-            return []
+        NetworkManager.shared.fetchData { [weak self] todosList in
+            guard let self = self else { return }
+            
+            DispatchQueue.global().async {
+                for todo in todosList.todos.reversed() {
+                    let task = Task(context: self.context)
+                    task.title = todo.todo
+                    task.details = todo.description
+                    task.date = todo.date
+                    task.isCompleted = todo.completed
+                    task.createdAt = Date()
+                }
+                
+                CoreDataStack.shared.saveContext()
+                defaults.set(true, forKey: "hasLaunchedBefore")
+                let request: NSFetchRequest<Task> = Task.fetchRequest()
+                request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+                
+                do {
+                    self.tasks = try self.context.fetch(request)
+                } catch {
+                    print(error.localizedDescription)
+                }
+                
+                DispatchQueue.main.async {
+                    completion()
+                }
+            }
         }
-    }
-    
-    func deleteTask(_ task: Task) {
-        context.delete(task)
-        CoreDataStack.shared.saveContext()
-        fetchTasks()
-    }
-    
-    func preloadDataIfNeeded() {
-
     }
 }
-
-//class TaskManager {
-//    var tasks: [ToDos] = []
-//    private var isDataLoaded = false
-//
-//    func addTask(_ task: ToDos) {
-//        tasks.insert(task, at: 0)
-//    }
-//
-//    func editTask(_ task: ToDos, newTask: ToDos) {
-//        if let index = tasks.firstIndex(where: { $0 == task}) {
-//            tasks[index] = newTask
-//        }
-//    }
-//
-//    func completeTask(at task: ToDos) {
-//        if let index = tasks.firstIndex(where: { $0 == task}) {
-//            tasks[index].completed.toggle()
-//        }
-//    }
-//
-//    func removeTask(_ task: ToDos) {
-//        if let index = tasks.firstIndex(where: { $0 == task}) {
-//            tasks.remove(at: index)
-//        }
-//    }
-//
-//    func loadTasksFromJSON(completion: @escaping ([ToDos]) -> Void) {
-//        guard !isDataLoaded else { completion(tasks)
-//            return
-//        }
-//
-//        NetworkManager.shared.fetchData { [weak self] result in
-//            self?.tasks = result.todos
-//            completion(result.todos)
-//        }
-//    }
-//
-//    func searchTasks(with query: String) -> [ToDos] {
-//        return tasks.filter { task in
-//            task.todo.lowercased().contains(query.lowercased())
-//        }
-//    }
-//}
