@@ -8,9 +8,7 @@
 import Foundation
 
 protocol TaskListRouterProtocol: AnyObject {
-    func navigateToTaskDetails(for task: ToDos?)
-//    func navigateToTaskDetailsForEdit(task: ToDos?)
-//    func navigateToTaskDetailsForAddTask()
+    func navigateToTaskDetails(for task: Task?)
 }
 
 class TaskListRouter {
@@ -24,28 +22,11 @@ class TaskListRouter {
 }
 
 extension TaskListRouter: TaskListRouterProtocol {
-    func navigateToTaskDetails(for task: ToDos?) {
+    func navigateToTaskDetails(for task: Task?) {
         let taskDetailsVC = TaskDetailsViewController()
         let configurator = TaskDetailsConfigurator()
         taskDetailsVC.delegate = viewController
         configurator.configure(viewController: taskDetailsVC, task: task, taskManager: taskManager)
         viewController?.navigationController?.pushViewController(taskDetailsVC, animated: true)
     }
-    
-    
-//    func navigateToTaskDetailsForAddTask() {
-//        let taskDetailsVC = TaskDetailsViewController()
-//        let configurator = TaskDetailsConfigurator()
-//        taskDetailsVC.delegate = viewController
-//        configurator.configure(viewController: taskDetailsVC, task: nil, taskManager: taskManager)
-//        viewController?.navigationController?.pushViewController(taskDetailsVC, animated: true)
-//    }
-//    
-//    func navigateToTaskDetailsForEdit(task: ToDos?) {
-//        let taskDetailsVC = TaskDetailsViewController()
-//        let configurator = TaskDetailsConfigurator()
-//        taskDetailsVC.delegate = viewController
-//        configurator.configure(viewController: taskDetailsVC, task: task, taskManager: taskManager)
-//        viewController?.navigationController?.pushViewController(taskDetailsVC, animated: true)
-//    }
 }

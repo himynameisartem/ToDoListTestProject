@@ -11,13 +11,13 @@ class NetworkManager {
     
     static let shared = NetworkManager()
         
-    func fetchData(completion: @escaping (Task) -> Void) {
+    func fetchData(completion: @escaping (Tasks) -> Void) {
         guard let url = Bundle.main.url(forResource: "todos", withExtension: "json") else { return }
         let session = URLSession.shared
         session.dataTask(with: url) { data, _, _ in
             guard let data = data else { return }
             do {
-                let tasks = try JSONDecoder().decode(Task.self, from: data)
+                let tasks = try JSONDecoder().decode(Tasks.self, from: data)
                 DispatchQueue.main.async {
                     completion(tasks)
                 }

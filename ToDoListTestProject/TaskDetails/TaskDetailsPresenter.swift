@@ -43,11 +43,11 @@ extension TaskDetailsPresenter: TaskDetailsInteractorOutputPritocol {
         viewController.didUpdateTask()
     }
     
-    func recieveTask(_ task: ToDos) {
+    func recieveTask(_ task: Task) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd/MM/yyyy"
-        let title = task.todo
-        let description = task.description ?? ""
+        let title = task.title ?? ""
+        let description = task.details ?? ""
         let date = task.date ?? dateFormatter.string(from: Date())
         
         let task = TaskDetailsEntity(title: title, description: description, date: date)

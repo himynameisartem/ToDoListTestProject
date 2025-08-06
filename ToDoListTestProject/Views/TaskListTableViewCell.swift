@@ -97,18 +97,18 @@ class TaskListTableViewCell: UITableViewCell {
     
     
     
-    func configure(task: ToDos) {
+    func configure(task: Task) {
         let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
-        let symbolName = task.completed ? "checkmark.circle" : "circle"
-        let symbolColor = task.completed ? UIColor.yellow : UIColor.darkGray
+        let symbolName = task.isCompleted ? "checkmark.circle" : "circle"
+        let symbolColor = task.isCompleted ? UIColor.yellow : UIColor.darkGray
         let image = UIImage(systemName: symbolName, withConfiguration: config)
         checkmarkButton.setImage(image, for: .normal)
         checkmarkButton.tintColor = symbolColor
-        titleLabel.attributedText = underlineString(isComleted: task.completed, text: task.todo)
-        descriptionLabel.text = task.description ?? ""
+        titleLabel.attributedText = underlineString(isComleted: task.isCompleted, text: task.title)
+        descriptionLabel.text = task.details ?? ""
         dateLabel.text = task.date ?? ""
         
-        if task.completed {
+        if task.isCompleted {
             titleLabel.textColor = .systemGray
             descriptionLabel.textColor = .darkGray
         } else {

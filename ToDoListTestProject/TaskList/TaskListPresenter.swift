@@ -8,17 +8,17 @@
 import Foundation
 
 protocol TaskListPresenterProtocol: AnyObject {
-    var tasks: [ToDos] { get }
+    var tasks: [Task] { get }
     var taskCount: Int? { get }
     func viewDidLoad()
     func updateTask()
-    func task(atIndex indexPath: IndexPath) -> ToDos?
-    func toggleCompletion(at task: ToDos)
-    func deleteTask(_ taks: ToDos)
-    func shareTask(_ task: ToDos)
+    func task(atIndex indexPath: IndexPath) -> Task?
+    func toggleCompletion(at task: Task)
+    func deleteTask(_ taks: Task)
+    func shareTask(_ task: Task)
     func searchTasks(by text: String)
     func cancelSearch()
-    func navigateToTaskDetails(task: ToDos?)
+    func navigateToTaskDetails(task: Task?)
 }
 
 class TaskListPresenter {
@@ -27,11 +27,11 @@ class TaskListPresenter {
     var interactor: TaskListInteractorProtocol!
     var router: TaskListRouterProtocol!
     
-    private var displayedTasks: [ToDos] = []
-    private var allTasks: [ToDos] = []
+    private var displayedTasks: [Task] = []
+    private var allTasks: [Task] = []
     private var isSearchActive = false
     
-    var tasks: [ToDos] {
+    var tasks: [Task] {
         return displayedTasks
     }
     
@@ -46,7 +46,7 @@ class TaskListPresenter {
 
 extension TaskListPresenter: TaskListPresenterProtocol {
     
-    func toggleCompletion(at task: ToDos) {
+    func toggleCompletion(at task: Task) {
         interactor.toggleTaskCompletion(at: task)
     }
     
@@ -58,15 +58,15 @@ extension TaskListPresenter: TaskListPresenterProtocol {
         interactor.updateTask()
     }
     
-    func task(atIndex indexPath: IndexPath) -> ToDos? {
+    func task(atIndex indexPath: IndexPath) -> Task? {
         return tasks.indices.contains(indexPath.row) ? tasks[indexPath.row] : nil
     }
     
-    func deleteTask(_ taks: ToDos) {
+    func deleteTask(_ taks: Task) {
         interactor.removeTask(taks)
     }
     
-    func shareTask(_ task: ToDos) {
+    func shareTask(_ task: Task) {
         interactor.shareTask(task)
     }
     
@@ -81,14 +81,13 @@ extension TaskListPresenter: TaskListPresenterProtocol {
         interactor.cancelSearch()
     }
     
-    func navigateToTaskDetails(task: ToDos?) {
+    func navigateToTaskDetails(task: Task?) {
         router.navigateToTaskDetails(for: task)
-//        router.navigateToTaskDetailsForEdit(task: task)
     }
 }
 
 extension TaskListPresenter: TaskListInteractorOutputProtocol {
-    func didUpdateTasks(_ tasks: [ToDos]) {
+    func didUpdateTasks(_ tasks: [Task]) {
         self.allTasks = tasks
         if isSearchActive {
             for i in 0..<displayedTasks.count {
@@ -102,7 +101,7 @@ extension TaskListPresenter: TaskListInteractorOutputProtocol {
         view.reloadData()
     }
     
-    func didFetchTask(_ tasks: [ToDos]) {
+    func didFetchTask(_ tasks: [Task]) {
         self.allTasks = tasks
         self.displayedTasks = tasks
         view.reloadData()
@@ -112,7 +111,7 @@ extension TaskListPresenter: TaskListInteractorOutputProtocol {
         view.displayShareTask(task)
     }
     
-    func didSearchTasks(_ tasks: [ToDos]) {
+    func didSearchTasks(_ tasks: [Task]) {
         self.displayedTasks = tasks
         view.reloadData()
     }

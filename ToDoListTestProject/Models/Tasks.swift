@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Task: Codable {
+struct Tasks: Codable {
     let limit: Int
     let skip: Int
     let todos: [ToDos]

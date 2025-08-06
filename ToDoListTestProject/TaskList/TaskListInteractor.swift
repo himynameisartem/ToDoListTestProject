@@ -8,20 +8,20 @@
 import Foundation
 
 protocol TaskListInteractorProtocol: AnyObject {
-    var tasks: [ToDos] { get }
+    var tasks: [Task] { get }
     func fetchTasks()
     func updateTask()
-    func toggleTaskCompletion(at task: ToDos)
-    func removeTask(_ task: ToDos)
+    func toggleTaskCompletion(at task: Task)
+    func removeTask(_ task: Task)
     func searchTasks(with query: String)
     func cancelSearch()
-    func shareTask(_ task: ToDos)
+    func shareTask(_ task: Task)
 }
 
 protocol TaskListInteractorOutputProtocol: AnyObject {
-    func didFetchTask(_ tasks: [ToDos])
-    func didUpdateTasks(_ tasks: [ToDos])
-    func didSearchTasks(_ tasks: [ToDos])
+    func didFetchTask(_ tasks: [Task])
+    func didUpdateTasks(_ tasks: [Task])
+    func didSearchTasks(_ tasks: [Task])
     func didShareTask(_ task: String)
 }
 
@@ -39,35 +39,37 @@ class TaskListInteractor {
 
 extension TaskListInteractor: TaskListInteractorProtocol {
     func updateTask() {
+        taskManager.fetchTasks()
         presenter.didUpdateTasks(taskManager.tasks)
     }
     
-    func toggleTaskCompletion(at task: ToDos) {
-        taskManager.completeTask(at: task)
+    func toggleTaskCompletion(at task: Task) {
+        taskManager.completeToggle(task)
         presenter.didUpdateTasks(taskManager.tasks)
     }
     
-    func removeTask(_ task: ToDos) {
-        taskManager.removeTask(task)
+    func removeTask(_ task: Task) {
+        taskManager.deleteTask(task)
         presenter.didUpdateTasks(taskManager.tasks)
     }
     
-    var tasks: [ToDos] {
+    var tasks: [Task] {
         taskManager.tasks
     }
-    func shareTask(_ task: ToDos) {
-        let taskDescription = "Task: \(task.todo)\nDescription: \(task.description ?? "")\nDate: \(task.date ?? "")"
+    func shareTask(_ task: Task) {
+        let taskDescription = "Task: \(task.title ?? "")\nDescription: \(task.details ?? "")\nDate: \(task.date ?? "")"
         presenter.didShareTask(taskDescription)
     }
     
     func fetchTasks() {
-        taskManager.loadTasksFromJSON { [weak self] tasks in
-            self?.presenter.didFetchTask(tasks)
+        taskManager.fetchTasks()
+        DispatchQueue.main.async {
+            self.presenter.didFetchTask(self.tasks)
         }
     }
     
     func searchTasks(with query: String){
-        let filteredTasks = taskManager.searchTasks(with: query)
+        let filteredTasks = taskManager.searchTasks(by: query)
         presenter.didSearchTasks(filteredTasks)
     }
     

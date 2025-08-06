@@ -8,11 +8,11 @@
 import Foundation
 
 protocol TaskDetailsConfiguratorProtocol: AnyObject {
-    func configure(viewController: TaskDetailsViewController, task: ToDos?, taskManager: TaskManager)
+    func configure(viewController: TaskDetailsViewController, task: Task?, taskManager: TaskManager)
 }
 
 class TaskDetailsConfigurator: TaskDetailsConfiguratorProtocol {
-    func configure(viewController: TaskDetailsViewController, task: ToDos?, taskManager: TaskManager) {
+    func configure(viewController: TaskDetailsViewController, task: Task?, taskManager: TaskManager) {
         let presenter = TaskDetailsPresenter(viewController: viewController)
         let interactor = TaskDetailsInteractor(presenter: presenter, task: task, taskManager: taskManager)
         let router = TaskDetailsRouter(viewController: viewController)
