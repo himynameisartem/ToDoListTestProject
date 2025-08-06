@@ -13,9 +13,10 @@ protocol TaskListConfigiratorProtocol {
 
 class TaskListConfigirator: TaskListConfigiratorProtocol {
     func configure(viewController: TaskListViewController) {
+        let taskManager = TaskManager()
         let presenter = TaskListPresenter(view: viewController)
-        let interactor = TaskListInteractor(presenter: presenter)
-        let router = TaskListRouter(viewController: viewController)
+        let interactor = TaskListInteractor(presenter: presenter, taskManager: taskManager)
+        let router = TaskListRouter(viewController: viewController, taskManager: taskManager)
         
         viewController.presenter = presenter
         presenter.interactor = interactor

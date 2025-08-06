@@ -14,19 +14,15 @@ struct Task: Codable {
 }
 
 struct ToDos: Codable {
-    var id: Int
     var todo: String
     var completed: Bool
-    var userId: Int
     var description: String?
     var date: String?
 }
 
 extension ToDos: Equatable {
     static func == (lhs: ToDos, rhs: ToDos) -> Bool {
-        return lhs.id == rhs.id &&
-               lhs.todo == rhs.todo &&
-               lhs.userId == rhs.userId &&
+        return lhs.todo == rhs.todo &&
                lhs.description == rhs.description &&
                lhs.date == rhs.date
     }

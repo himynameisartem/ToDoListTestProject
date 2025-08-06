@@ -12,12 +12,13 @@ class TaskManager {
     private var isDataLoaded = false
 
     func addTask(_ task: ToDos) {
-        tasks.append(task)
+        tasks.insert(task, at: 0)
     }
     
-    func editTask(at index: Int, with newTask: ToDos) {
-        guard index >= 0 && index < tasks.count else { return }
-        tasks[index] = newTask
+    func editTask(_ task: ToDos, newTask: ToDos) {
+        if let index = tasks.firstIndex(where: { $0 == task}) {
+            tasks[index] = newTask
+        }
     }
     
     func completeTask(at task: ToDos) {

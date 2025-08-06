@@ -9,6 +9,7 @@ import UIKit
 
 protocol TaskListViewProtocol: AnyObject {
     func reloadData()
+    func displayShareTask(_ taskDescription: String)
 }
 
 class TaskListViewController: UIViewController {
@@ -18,26 +19,29 @@ class TaskListViewController: UIViewController {
     
     var taskListTableView: UITableView!
     var bottomBarView: UIView!
+    var bottomContainerView: UIView!
     var tasksCountLabel: UILabel!
     var addTaskButton: UIButton!
     let searchController = UISearchController(searchResultsController: nil)
+    private var sharedActivitiIndicator: UIActivityIndicatorView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configurator.configure(viewController: self)
         presenter.viewDidLoad()
-        configureNavigationBar()
-        configureSearchController()
-        configureBottomBarView()
-        configureTaskListTableView()
-        setuUI()
+        setupNavigationBar()
+        setupSearchController()
+        setupBottomBarView()
+        setupTaskListTableView()
+        setupActivitiIndicator()
+        setupUI()
         setupConstraints()
     }
     
-    private func setuUI() {
-        
-        view.backgroundColor = .darkGray
-        view.addSubview(bottomBarView)
+    private func setupUI() {
+        view.backgroundColor = .black
+        view.addSubview(bottomContainerView)
+        bottomContainerView.addSubview(bottomBarView)
         bottomBarView.addSubview(tasksCountLabel)
         bottomBarView.addSubview(addTaskButton)
         view.addSubview(taskListTableView)
@@ -46,7 +50,7 @@ class TaskListViewController: UIViewController {
         navigationItem.hidesSearchBarWhenScrolling = false
     }
     
-    private func configureNavigationBar() {
+    private func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .black
@@ -65,7 +69,7 @@ class TaskListViewController: UIViewController {
         navigationController?.navigationBar.tintColor = .yellow
     }
     
-    private func configureSearchController() {
+    private func setupSearchController() {
 
         searchController.searchBar.searchTextField.attributedPlaceholder = NSAttributedString(
             string: "Search tasks...",
@@ -89,7 +93,11 @@ class TaskListViewController: UIViewController {
         }
     }
     
-    private func configureBottomBarView() {
+    private func setupBottomBarView() {
+        bottomContainerView = UIView()
+        bottomContainerView.translatesAutoresizingMaskIntoConstraints = false
+        bottomContainerView.backgroundColor = .darkGray
+        
         bottomBarView = UIView()
         bottomBarView.translatesAutoresizingMaskIntoConstraints = false
         bottomBarView.backgroundColor = .none
@@ -106,10 +114,10 @@ class TaskListViewController: UIViewController {
         addTaskButton.translatesAutoresizingMaskIntoConstraints = false
         addTaskButton.setImage(image, for: .normal)
         addTaskButton.tintColor = .yellow
-        addTaskButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+        addTaskButton.addTarget(self, action: #selector(didTapAddButton), for: .touchUpInside)
     }
     
-    private func configureTaskListTableView() {
+    private func setupTaskListTableView() {
         taskListTableView = UITableView()
         taskListTableView.delegate = self
         taskListTableView.dataSource = self
@@ -119,12 +127,25 @@ class TaskListViewController: UIViewController {
         taskListTableView.separatorColor = .darkGray
     }
     
+    private func setupActivitiIndicator() {
+        sharedActivitiIndicator = UIActivityIndicatorView(frame: view.bounds)
+        view.addSubview(sharedActivitiIndicator)
+        sharedActivitiIndicator.center = view.center
+        sharedActivitiIndicator.style = .large
+        sharedActivitiIndicator.hidesWhenStopped = true
+    }
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomBarView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             bottomBarView.heightAnchor.constraint(equalToConstant: 49),
+            
+            bottomContainerView.topAnchor.constraint(equalTo: bottomBarView.topAnchor),
+            bottomContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
             tasksCountLabel.centerXAnchor.constraint(equalTo: bottomBarView.centerXAnchor),
             tasksCountLabel.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
@@ -141,8 +162,8 @@ class TaskListViewController: UIViewController {
         ])
     }
     
-    @objc private func addButtonTapped(_ sender: UIButton) {
-        presenter.routeToTaskDetails(task: nil)
+    @objc private func didTapAddButton(_ sender: UIButton) {
+        presenter.navigateToTaskDetails(task: nil)
     }
 }
 
@@ -160,7 +181,7 @@ extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
         guard let task = presenter.task(atIndex: indexPath) else { return cell}
         cell.configure(task: task)
         cell.checkmarkButtonAction = { [weak self] in
-            self?.presenter.taskCompletionToggle(at: task)
+            self?.presenter.toggleCompletion(at: task)
         }
 
         return cell
@@ -176,13 +197,13 @@ extension TaskListViewController: UITableViewDelegate, UITableViewDataSource {
         
         let configuration = UIContextMenuConfiguration(identifier: indexPath as NSCopying, previewProvider: nil) { action in
             let addTask = UIAction(title: "Edit", image: UIImage(systemName: "square.and.pencil")) { action in
-                self.presenter.routeToTaskDetails(task: task)
+                self.presenter.navigateToTaskDetails(task: task)
             }
             let editTask = UIAction(title: "Share", image: UIImage(systemName: "square.and.arrow.up")) { action in
-                
+                self.presenter.shareTask(task)
             }
             let deleteTask = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { action in
-                self.presenter.removeTask(task)
+                self.presenter.deleteTask(task)
             }
             return UIMenu(title: "", children: [addTask, editTask, deleteTask])
         }
@@ -224,5 +245,25 @@ extension TaskListViewController: TaskListViewProtocol {
     func reloadData() {
         tasksCountLabel.text = ("\(presenter.taskCount ?? 0) tasks")
         self.taskListTableView.reloadData()
+    }
+    
+    func displayShareTask(_ taskDescription: String) {
+        sharedActivitiIndicator.startAnimating()
+        let controller = UIActivityViewController(
+            activityItems: [taskDescription],
+          applicationActivities: nil
+        )
+        DispatchQueue.main.async{
+            self.present(controller, animated: true, completion: nil)
+            if controller.isViewLoaded  {
+                self.sharedActivitiIndicator.stopAnimating()
+            }
+        }
+    }
+}
+
+extension TaskListViewController: TaskDetailsDelegate {
+    func didUpdatedTasks() {
+        presenter.updateTask()
     }
 }

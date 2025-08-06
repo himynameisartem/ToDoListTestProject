@@ -10,41 +10,39 @@ import Foundation
 protocol TaskListInteractorProtocol: AnyObject {
     var tasks: [ToDos] { get }
     func fetchTasks()
-    func addTask(_ task: ToDos)
-    func editTask(at index: Int, with newTask: ToDos)
-    func completeTask(at task: ToDos)
+    func updateTask()
+    func toggleTaskCompletion(at task: ToDos)
     func removeTask(_ task: ToDos)
     func searchTasks(with query: String)
     func cancelSearch()
+    func shareTask(_ task: ToDos)
 }
 
 protocol TaskListInteractorOutputProtocol: AnyObject {
     func didFetchTask(_ tasks: [ToDos])
     func didUpdateTasks(_ tasks: [ToDos])
     func didSearchTasks(_ tasks: [ToDos])
+    func didShareTask(_ task: String)
 }
 
 class TaskListInteractor {
     
     weak var presenter: TaskListInteractorOutputProtocol!
-    private let taskManager = TaskManager()
+    private let taskManager: TaskManager
     
-    init(presenter: TaskListInteractorOutputProtocol) {
+    init(presenter: TaskListInteractorOutputProtocol, taskManager: TaskManager) {
         self.presenter = presenter
+        self.taskManager = taskManager
     }
     
 }
 
 extension TaskListInteractor: TaskListInteractorProtocol {
-    func addTask(_ task: ToDos) {
-        taskManager.addTask(task)
+    func updateTask() {
+        presenter.didUpdateTasks(taskManager.tasks)
     }
     
-    func editTask(at index: Int, with newTask: ToDos) {
-        taskManager.editTask(at: index, with: newTask)
-    }
-    
-    func completeTask(at task: ToDos) {
+    func toggleTaskCompletion(at task: ToDos) {
         taskManager.completeTask(at: task)
         presenter.didUpdateTasks(taskManager.tasks)
     }
@@ -56,6 +54,10 @@ extension TaskListInteractor: TaskListInteractorProtocol {
     
     var tasks: [ToDos] {
         taskManager.tasks
+    }
+    func shareTask(_ task: ToDos) {
+        let taskDescription = "Task: \(task.todo)\nDescription: \(task.description ?? "")\nDate: \(task.date ?? "")"
+        presenter.didShareTask(taskDescription)
     }
     
     func fetchTasks() {

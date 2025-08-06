@@ -11,12 +11,14 @@ protocol TaskListPresenterProtocol: AnyObject {
     var tasks: [ToDos] { get }
     var taskCount: Int? { get }
     func viewDidLoad()
+    func updateTask()
     func task(atIndex indexPath: IndexPath) -> ToDos?
-    func taskCompletionToggle(at task: ToDos)
-    func removeTask(_ taks: ToDos)
+    func toggleCompletion(at task: ToDos)
+    func deleteTask(_ taks: ToDos)
+    func shareTask(_ task: ToDos)
     func searchTasks(by text: String)
     func cancelSearch()
-    func routeToTaskDetails(task: ToDos?)
+    func navigateToTaskDetails(task: ToDos?)
 }
 
 class TaskListPresenter {
@@ -44,20 +46,28 @@ class TaskListPresenter {
 
 extension TaskListPresenter: TaskListPresenterProtocol {
     
-    func taskCompletionToggle(at task: ToDos) {
-        interactor.completeTask(at: task)
+    func toggleCompletion(at task: ToDos) {
+        interactor.toggleTaskCompletion(at: task)
     }
     
     func viewDidLoad() {
         interactor.fetchTasks()
     }
     
+    func updateTask() {
+        interactor.updateTask()
+    }
+    
     func task(atIndex indexPath: IndexPath) -> ToDos? {
         return tasks.indices.contains(indexPath.row) ? tasks[indexPath.row] : nil
     }
     
-    func removeTask(_ taks: ToDos) {
+    func deleteTask(_ taks: ToDos) {
         interactor.removeTask(taks)
+    }
+    
+    func shareTask(_ task: ToDos) {
+        interactor.shareTask(task)
     }
     
     func searchTasks(by text: String) {
@@ -71,8 +81,9 @@ extension TaskListPresenter: TaskListPresenterProtocol {
         interactor.cancelSearch()
     }
     
-    func routeToTaskDetails(task: ToDos?) {
-        router.navigateToTaskDetailsForEdit(task: task)
+    func navigateToTaskDetails(task: ToDos?) {
+        router.navigateToTaskDetails(for: task)
+//        router.navigateToTaskDetailsForEdit(task: task)
     }
 }
 
@@ -95,6 +106,10 @@ extension TaskListPresenter: TaskListInteractorOutputProtocol {
         self.allTasks = tasks
         self.displayedTasks = tasks
         view.reloadData()
+    }
+    
+    func didShareTask(_ task: String) {
+        view.displayShareTask(task)
     }
     
     func didSearchTasks(_ tasks: [ToDos]) {
