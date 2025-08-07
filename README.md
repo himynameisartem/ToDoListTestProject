@@ -29,7 +29,7 @@ The project is structured using the VIPER architecture:
 
 ## Installation
   1.	Clone the repository:
-git clone https://github.com/himynameisartem/ToDoList.git
+git clone https://github.com/himynameisartem/ToDoListTestProject.git
 
   2.	Open the .xcodeproj file in Xcode
 
@@ -77,7 +77,7 @@ If you have any questions, suggestions, or feedback, feel free to contact me:
 ##  Установка
 
   1. Склонируйте репозиторий:
-git clone https://github.com/himynameisartem/ToDoList.git
+git clone https://github.com/himynameisartem/ToDoListTestProject.git
 
   2. Откройте .xcodeproj файл в Xcode
 
